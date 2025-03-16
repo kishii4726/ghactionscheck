@@ -1,0 +1,9 @@
+- Github Actionsのワークフローファイルをチェックして推奨事項をレコメンドするツールを作成してください
+- Goの最新バージョンを使用してください
+- チェックするファイルは引数で指定できるようにしてください。ライブラリはgithub.com/alecthomas/kongを使用してください
+- 推奨事項はテーブル形式で表示してください。ライブラリはgithub.com/olekukonko/tablewriterを使用してください
+- 推奨事項はWarningなど内容によってレベル分けしてください
+- チェックしたい項目は以下の通りです
+  - job及びstepに`timeout-minutes`が設定されているか
+    - jobに`timeout-minutes`が設定されている場合、stepでは設定されていなくても問題ありません
+  - permissionsで`GITHUB_TOKEN`の権限が制限されているか
