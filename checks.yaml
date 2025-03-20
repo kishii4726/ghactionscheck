@@ -1,4 +1,10 @@
 checks:
+  - id: concurrency
+    description: "Check if concurrency is configured"
+    level: "WARNING"
+    message: "No concurrency configuration"
+    detail: "Configure concurrency to prevent concurrent execution of workflows that might conflict with each other"
+
   - id: timeout
     description: "Check if timeout-minutes is set"
     level: "WARNING"

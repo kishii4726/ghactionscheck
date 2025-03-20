@@ -18,8 +18,9 @@ var cli struct {
 
 // Workflow GitHub Actionsのワークフローファイルの構造
 type Workflow struct {
-	Jobs     map[string]Job `yaml:"jobs"`
-	Defaults *Defaults      `yaml:"defaults"`
+	Jobs        map[string]Job `yaml:"jobs"`
+	Defaults    *Defaults      `yaml:"defaults"`
+	Concurrency interface{}    `yaml:"concurrency"`
 }
 
 // Defaults デフォルト設定の定義
@@ -118,10 +119,23 @@ func main() {
 	results := checkWorkflow(workflow, checksConfig.Checks)
 	outputResults(results)
 }
-
 func checkWorkflow(workflow Workflow, checks []Check) []CheckResult {
 	var results []CheckResult
 
+	// concurrencyのチェック
+	if workflow.Concurrency == nil {
+		check := findCheck(checks, "concurrency")
+		if check != nil {
+			results = append(results, CheckResult{
+				JobName:     "workflow",
+				Message:     check.Message,
+				Level:       check.Level,
+				Description: check.Detail,
+			})
+		}
+	}
+
+	// defaultsのshellチェック
 	// defaultsのshellチェック
 	if workflow.Defaults == nil || workflow.Defaults.Run == nil || workflow.Defaults.Run.Shell == "" {
 		check := findCheck(checks, "default_shell")
