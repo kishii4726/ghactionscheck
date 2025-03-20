@@ -48,6 +48,7 @@ type Check struct {
 	Level       string `yaml:"level"`
 	Message     string `yaml:"message"`
 	Detail      string `yaml:"detail"`
+	Enabled     *bool  `yaml:"enabled,omitempty"`
 }
 
 // ChecksConfig チェック項目の設定ファイル構造
@@ -83,7 +84,11 @@ func loadChecksConfig() (*ChecksConfig, error) {
 func findCheck(checks []Check, id string) *Check {
 	for _, check := range checks {
 		if check.ID == id {
-			return &check
+			// enabledがnilまたはtrueの場合のみチェックを実行
+			if check.Enabled == nil || *check.Enabled {
+				return &check
+			}
+			return nil
 		}
 	}
 	return nil
