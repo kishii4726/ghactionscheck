@@ -45,7 +45,6 @@ type Job struct {
 type Check struct {
 	ID          string `yaml:"id"`
 	Description string `yaml:"description"`
-	Level       string `yaml:"level"`
 	Message     string `yaml:"message"`
 	Detail      string `yaml:"detail"`
 	Enabled     *bool  `yaml:"enabled,omitempty"`
@@ -60,7 +59,6 @@ type ChecksConfig struct {
 type CheckResult struct {
 	JobName     string
 	Message     string
-	Level       string
 	Description string
 }
 
@@ -124,6 +122,7 @@ func main() {
 	results := checkWorkflow(workflow, checksConfig.Checks)
 	outputResults(results)
 }
+
 func checkWorkflow(workflow Workflow, checks []Check) []CheckResult {
 	var results []CheckResult
 
@@ -134,13 +133,11 @@ func checkWorkflow(workflow Workflow, checks []Check) []CheckResult {
 			results = append(results, CheckResult{
 				JobName:     "workflow",
 				Message:     check.Message,
-				Level:       check.Level,
 				Description: check.Detail,
 			})
 		}
 	}
 
-	// defaultsのshellチェック
 	// defaultsのshellチェック
 	if workflow.Defaults == nil || workflow.Defaults.Run == nil || workflow.Defaults.Run.Shell == "" {
 		check := findCheck(checks, "default_shell")
@@ -148,7 +145,6 @@ func checkWorkflow(workflow Workflow, checks []Check) []CheckResult {
 			results = append(results, CheckResult{
 				JobName:     "workflow",
 				Message:     check.Message,
-				Level:       check.Level,
 				Description: check.Detail,
 			})
 		}
@@ -162,7 +158,6 @@ func checkWorkflow(workflow Workflow, checks []Check) []CheckResult {
 				results = append(results, CheckResult{
 					JobName:     jobName,
 					Message:     fmt.Sprintf(check.Message, runsOn),
-					Level:       check.Level,
 					Description: check.Detail,
 				})
 			}
@@ -174,7 +169,6 @@ func checkWorkflow(workflow Workflow, checks []Check) []CheckResult {
 						results = append(results, CheckResult{
 							JobName:     jobName,
 							Message:     fmt.Sprintf(check.Message, runnerStr),
-							Level:       check.Level,
 							Description: check.Detail,
 						})
 					}
@@ -197,7 +191,6 @@ func checkWorkflow(workflow Workflow, checks []Check) []CheckResult {
 				results = append(results, CheckResult{
 					JobName:     jobName,
 					Message:     check.Message,
-					Level:       check.Level,
 					Description: check.Detail,
 				})
 			}
@@ -209,7 +202,6 @@ func checkWorkflow(workflow Workflow, checks []Check) []CheckResult {
 			results = append(results, CheckResult{
 				JobName:     jobName,
 				Message:     check.Message,
-				Level:       check.Level,
 				Description: check.Detail,
 			})
 		} else {
@@ -220,7 +212,6 @@ func checkWorkflow(workflow Workflow, checks []Check) []CheckResult {
 				results = append(results, CheckResult{
 					JobName:     jobName,
 					Message:     check.Message,
-					Level:       check.Level,
 					Description: check.Detail,
 				})
 			}
@@ -238,7 +229,6 @@ func checkWorkflow(workflow Workflow, checks []Check) []CheckResult {
 						results = append(results, CheckResult{
 							JobName:     jobName,
 							Message:     fmt.Sprintf(check.Message, uses),
-							Level:       check.Level,
 							Description: check.Detail,
 						})
 					}
@@ -252,7 +242,6 @@ func checkWorkflow(workflow Workflow, checks []Check) []CheckResult {
 							results = append(results, CheckResult{
 								JobName:     jobName,
 								Message:     check.Message,
-								Level:       check.Level,
 								Description: check.Detail,
 							})
 						}
@@ -272,7 +261,7 @@ func outputResults(results []CheckResult) {
 	}
 
 	table := tablewriter.NewWriter(os.Stdout)
-	table.SetHeader([]string{"Job", "Level", "Message", "Description"})
+	table.SetHeader([]string{"Job", "Message", "Description"})
 	table.SetBorders(tablewriter.Border{Left: true, Top: true, Right: true, Bottom: true})
 	table.SetCenterSeparator("|")
 	table.SetRowLine(true)
@@ -280,7 +269,6 @@ func outputResults(results []CheckResult) {
 	for _, result := range results {
 		table.Append([]string{
 			result.JobName,
-			result.Level,
 			result.Message,
 			result.Description,
 		})

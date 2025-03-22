@@ -1,56 +1,48 @@
 checks:
   - id: concurrency
     description: "Check if concurrency is configured"
-    level: "WARNING"
     message: "No concurrency configuration"
     detail: "Configure concurrency to prevent concurrent execution of workflows that might conflict with each other"
     enabled: true
 
   - id: timeout
     description: "Check if timeout-minutes is set"
-    level: "WARNING"
     message: "No timeout specified"
     detail: "Neither job nor steps have timeout-minutes set"
     enabled: true
 
   - id: permissions
     description: "Check if GITHUB_TOKEN permissions are restricted"
-    level: "WARNING"
     message: "No permissions specified"
     detail: "GITHUB_TOKEN permissions are not restricted"
     enabled: true
 
   - id: unrestricted_permissions
     description: "Check if permissions are not too broad"
-    level: "WARNING"
     message: "Unrestricted permissions"
     detail: "GITHUB_TOKEN has unrestricted permissions"
     enabled: true
 
   - id: action_ref
     description: "Check if actions are referenced by commit hash"
-    level: "WARNING"
     message: "Non-commit hash reference: %s"
     detail: "Use full commit hash (40 or 64 characters) instead of tags or branches for better security and reproducibility"
     enabled: true
 
   - id: runner_version
     description: "Check if runner version is specific"
-    level: "WARNING"
     message: "Non-specific runner version: %s"
     detail: "Specify explicit runner version (e.g., ubuntu-22.04) for better reproducibility"
     enabled: true
 
   - id: default_shell
     description: "Check if default shell is specified"
-    level: "WARNING"
     message: "No default shell specified"
     detail: "Specify default shell in the defaults section for better consistency"
     enabled: true
 
   - id: aws_credentials
     description: "Check if AWS credentials are properly configured"
-    level: "ALERT"
     message: "Direct AWS credentials usage detected"
     detail: "Use OIDC or GitHub Secrets instead of direct AWS access key credentials for better security"
     enabled: true
