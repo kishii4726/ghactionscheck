@@ -11,29 +11,24 @@ import (
 	"gopkg.in/yaml.v3"
 )
 
-// CLI コマンドラインの引数を定義する構造体
 var cli struct {
 	File string `arg:"" name:"file" help:"Path to GitHub Actions workflow file"`
 }
 
-// Workflow GitHub Actionsのワークフローファイルの構造
 type Workflow struct {
 	Jobs        map[string]Job `yaml:"jobs"`
 	Defaults    *Defaults      `yaml:"defaults"`
 	Concurrency interface{}    `yaml:"concurrency"`
 }
 
-// Defaults デフォルト設定の定義
 type Defaults struct {
 	Run *RunDefaults `yaml:"run"`
 }
 
-// RunDefaults 実行時のデフォルト設定
 type RunDefaults struct {
 	Shell string `yaml:"shell"`
 }
 
-// Job ジョブの定義
 type Job struct {
 	TimeoutMinutes *int                     `yaml:"timeout-minutes"`
 	Permissions    *map[string]string       `yaml:"permissions"`
@@ -41,7 +36,6 @@ type Job struct {
 	RunsOn         interface{}              `yaml:"runs-on"`
 }
 
-// Check チェック項目の定義
 type Check struct {
 	ID          string `yaml:"id"`
 	Description string `yaml:"description"`
@@ -50,19 +44,16 @@ type Check struct {
 	Enabled     *bool  `yaml:"enabled,omitempty"`
 }
 
-// ChecksConfig チェック項目の設定ファイル構造
 type ChecksConfig struct {
 	Checks []Check `yaml:"checks"`
 }
 
-// CheckResult チェック結果を保持する構造体
 type CheckResult struct {
 	JobName     string
 	Message     string
 	Description string
 }
 
-// コミットハッシュを検証する正規表現パターン
 var commitHashPattern = regexp.MustCompile(`^[0-9a-f]{40}([0-9a-f]{24})?$`)
 
 func loadChecksConfig() (*ChecksConfig, error) {
@@ -82,7 +73,6 @@ func loadChecksConfig() (*ChecksConfig, error) {
 func findCheck(checks []Check, id string) *Check {
 	for _, check := range checks {
 		if check.ID == id {
-			// enabledがnilまたはtrueの場合のみチェックを実行
 			if check.Enabled == nil || *check.Enabled {
 				return &check
 			}
@@ -105,7 +95,6 @@ func main() {
 		os.Exit(1)
 	}
 
-	// ワークフローファイルを読み込む
 	data, err := os.ReadFile(cli.File)
 	if err != nil {
 		fmt.Printf("Error reading file: %v\n", err)
@@ -126,7 +115,6 @@ func main() {
 func checkWorkflow(workflow Workflow, checks []Check) []CheckResult {
 	var results []CheckResult
 
-	// concurrencyのチェック
 	if workflow.Concurrency == nil {
 		check := findCheck(checks, "concurrency")
 		if check != nil {
@@ -138,7 +126,6 @@ func checkWorkflow(workflow Workflow, checks []Check) []CheckResult {
 		}
 	}
 
-	// defaultsのshellチェック
 	if workflow.Defaults == nil || workflow.Defaults.Run == nil || workflow.Defaults.Run.Shell == "" {
 		check := findCheck(checks, "default_shell")
 		if check != nil {
@@ -151,7 +138,6 @@ func checkWorkflow(workflow Workflow, checks []Check) []CheckResult {
 	}
 
 	for jobName, job := range workflow.Jobs {
-		// runs-onのチェック
 		if runsOn, ok := job.RunsOn.(string); ok {
 			if strings.Contains(runsOn, "latest") {
 				check := findCheck(checks, "runner_version")
@@ -176,7 +162,6 @@ func checkWorkflow(workflow Workflow, checks []Check) []CheckResult {
 			}
 		}
 
-		// タイムアウトのチェック
 		if job.TimeoutMinutes == nil {
 			hasStepTimeout := false
 			for _, step := range job.Steps {
@@ -196,7 +181,6 @@ func checkWorkflow(workflow Workflow, checks []Check) []CheckResult {
 			}
 		}
 
-		// パーミッションのチェック
 		if job.Permissions == nil {
 			check := findCheck(checks, "permissions")
 			results = append(results, CheckResult{
@@ -205,7 +189,6 @@ func checkWorkflow(workflow Workflow, checks []Check) []CheckResult {
 				Description: check.Detail,
 			})
 		} else {
-			// パーミッションが設定されていて、write-allの場合のみ警告
 			perms := *job.Permissions
 			if perms["contents"] == "write-all" {
 				check := findCheck(checks, "unrestricted_permissions")
@@ -217,10 +200,8 @@ func checkWorkflow(workflow Workflow, checks []Check) []CheckResult {
 			}
 		}
 
-		// アクションの参照方法とAWSクレデンシャルのチェック
 		for _, step := range job.Steps {
 			if uses, ok := step["uses"].(string); ok {
-				// アクションの参照方法をチェック
 				parts := strings.Split(uses, "@")
 				if len(parts) == 2 {
 					ref := parts[1]
@@ -234,7 +215,6 @@ func checkWorkflow(workflow Workflow, checks []Check) []CheckResult {
 					}
 				}
 
-				// AWSクレデンシャルのチェック
 				if uses == "aws-actions/configure-aws-credentials" || strings.HasPrefix(uses, "aws-actions/configure-aws-credentials@") {
 					if with, ok := step["with"].(map[string]interface{}); ok {
 						if _, hasAccessKeyID := with["aws-access-key-id"]; hasAccessKeyID {
